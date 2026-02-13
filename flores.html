@@ -17,7 +17,7 @@
 
         .contenedor-mensaje {
             position: absolute;
-            top: 10%; 
+            top: 5%; /* AJUSTE: Más arriba para no chocar */
             width: 100%;
             text-align: center;
             z-index: 10;
@@ -35,19 +35,18 @@
             padding: 0 20px;
         }
 
-        /* AJUSTE: Separación del contador para que no choque */
         .contenedor-contador {
             position: absolute;
-            bottom: 5%; /* Un poco más de margen */
+            bottom: 5%; 
             width: 100%;
             text-align: center;
-            z-index: 20; /* Prioridad sobre el canvas */
+            z-index: 20; 
             pointer-events: none;
         }
 
         .contador-box {
             display: inline-block;
-            background: rgba(0, 0, 0, 0.7); /* Un poco más oscuro para legibilidad */
+            background: rgba(0, 0, 0, 0.7); 
             padding: 12px 25px;
             border-radius: 15px;
             backdrop-filter: blur(6px);
@@ -147,7 +146,7 @@
         setInterval(actualizarReloj, 1000);
 
         function iniciarMusica() {
-            musica.volume = 0.3;
+            musica.volume = 0.2;
             musica.play().catch(e => console.log("Clic para audio"));
         }
         window.addEventListener('load', iniciarMusica);
@@ -189,8 +188,6 @@
         class Tulip {
             constructor(sideOffset, heightRatio, tiltDeg, phase) {
                 this.sideOffset = sideOffset;
-                // AJUSTE: Subimos la base de las flores un poco (de 0.95 a 0.88) 
-                // para que el contador tenga su propio espacio abajo.
                 this.baseY = h * 0.85; 
                 this.height = h * heightRatio;
                 this.tiltRad = tiltDeg * Math.PI / 180;
@@ -264,12 +261,12 @@
             resize();
             particles = Array.from({length: 70}, () => new Particle());
             flowers.length = 0;
-            // Flores un poco más pequeñas para ganar espacio vertical
-            flowers.push(new Tulip(-w * 0.10, 0.40, -20, 0.0));
-            flowers.push(new Tulip(-w * 0.05, 0.45, -10, 1.1));
-            flowers.push(new Tulip(0, 0.55, 0, 2.2));
-            flowers.push(new Tulip( w * 0.05, 0.45, 10, 3.3));
-            flowers.push(new Tulip( w * 0.10, 0.40, 20, 4.4));
+            // AJUSTE: Reduje la escala de altura (ej. de 0.55 a 0.45) para que no suban tanto
+            flowers.push(new Tulip(-w * 0.10, 0.35, -20, 0.0));
+            flowers.push(new Tulip(-w * 0.05, 0.40, -10, 1.1));
+            flowers.push(new Tulip(0, 0.45, 0, 2.2));
+            flowers.push(new Tulip( w * 0.05, 0.40, 10, 3.3));
+            flowers.push(new Tulip( w * 0.10, 0.35, 20, 4.4));
         }
 
         function animate() {
