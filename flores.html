@@ -3,17 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tulipanes Nocturnos Suaves - 5 Flores Más Juntas</title>
+    <title>Para ti mi amor - Tulipanes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
             overflow: hidden;
             background: #000;
+            font-family: 'Quicksand', sans-serif;
         }
         canvas { display: block; }
+
+        .contenedor-mensaje {
+            position: absolute;
+            top: 10%; 
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+        }
+
+        #mensaje {
+            color: white;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 155, 194, 0.4);
+            transition: opacity 1.2s ease-in-out;
+            opacity: 0;
+            min-height: 2em;
+            padding: 0 20px;
+        }
+
+        /* AJUSTE: Separación del contador para que no choque */
+        .contenedor-contador {
+            position: absolute;
+            bottom: 5%; /* Un poco más de margen */
+            width: 100%;
+            text-align: center;
+            z-index: 20; /* Prioridad sobre el canvas */
+            pointer-events: none;
+        }
+
+        .contador-box {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.7); /* Un poco más oscuro para legibilidad */
+            padding: 12px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 155, 194, 0.3);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        #titulo-contador {
+            color: #ffb3c1;
+            font-size: 0.85rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        #reloj {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 0 5px rgba(255,255,255,0.3);
+        }
+
         .overlay {
             position: fixed;
             inset: 0;
@@ -24,16 +82,76 @@
     </style>
 </head>
 <body>
+    <audio id="miMusica" loop>
+        <source src="musica.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="contenedor-mensaje">
+        <h2 id="mensaje"></h2>
+    </div>
+
+    <div class="contenedor-contador">
+        <div class="contador-box">
+            <p id="titulo-contador">Nuestro amor comenzó hace...</p>
+            <p id="reloj">Cargando...</p>
+        </div>
+    </div>
+
     <div class="overlay"></div>
     <canvas id="c"></canvas>
 
     <script>
         const canvas = document.getElementById('c');
         const ctx = canvas.getContext('2d');
+        const textoCambiante = document.getElementById('mensaje');
+        const musica = document.getElementById('miMusica');
+        const relojEl = document.getElementById('reloj');
 
         let w, h, time = 0;
         const flowers = [];
         let particles = [];
+
+        const frases = [
+            "PARA EL AMOR DE MI VIDA:",
+            "SI PUDIERA ELEGIR UN LUGAR",
+            "SEGURO SERÍA A TU LADO",
+            "CUANTO MÁS TIEMPO PASO CONTIGO",
+            "MÁS TE AMO <3",
+            "",
+            "",
+            ""
+        ];
+        
+        let indiceFrase = 0;
+        function mostrarSiguienteFrase() {
+            textoCambiante.style.opacity = "0";
+            setTimeout(() => {
+                textoCambiante.innerText = frases[indiceFrase];
+                textoCambiante.style.opacity = "1";
+                indiceFrase = (indiceFrase + 1) % frases.length;
+            }, 1500);
+        }
+        mostrarSiguienteFrase();
+        setInterval(mostrarSiguienteFrase, 5000);
+
+        const fechaInicio = new Date(2025, 10, 28, 22, 56, 0).getTime();
+        function actualizarReloj() {
+            const ahora = new Date().getTime();
+            const diff = ahora - fechaInicio;
+            const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const segundos = Math.floor((diff % (1000 * 60)) / 1000);
+            relojEl.innerText = `${dias} días, ${horas}h, ${minutos}m, ${segundos}s`;
+        }
+        setInterval(actualizarReloj, 1000);
+
+        function iniciarMusica() {
+            musica.volume = 0.3;
+            musica.play().catch(e => console.log("Clic para audio"));
+        }
+        window.addEventListener('load', iniciarMusica);
+        document.body.addEventListener('click', iniciarMusica, { once: true });
 
         function resize() {
             w = canvas.width = window.innerWidth;
@@ -61,12 +179,9 @@
             draw() {
                 ctx.save();
                 ctx.globalAlpha = this.opacity * 0.7;
-                ctx.shadowBlur = 6;
-                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 6; ctx.shadowColor = this.color;
                 ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
                 ctx.restore();
             }
         }
@@ -74,29 +189,26 @@
         class Tulip {
             constructor(sideOffset, heightRatio, tiltDeg, phase) {
                 this.sideOffset = sideOffset;
-                this.baseY = h * 0.92;
+                // AJUSTE: Subimos la base de las flores un poco (de 0.95 a 0.88) 
+                // para que el contador tenga su propio espacio abajo.
+                this.baseY = h * 0.85; 
                 this.height = h * heightRatio;
                 this.tiltRad = tiltDeg * Math.PI / 180;
                 this.phase = phase;
                 this.baseX = w / 2;
-
                 this.petalGradient = ctx.createRadialGradient(0, -30, 5, 0, -80, 60);
                 this.petalGradient.addColorStop(0, '#ffccdd');
                 this.petalGradient.addColorStop(0.4, '#ff9bc2');
                 this.petalGradient.addColorStop(0.7, '#ff78a8');
                 this.petalGradient.addColorStop(1, '#f06292');
             }
-
             update() {
                 this.angle = this.tiltRad + Math.sin(time * 0.0008 + this.phase) * 0.08;
             }
-
             draw() {
                 const horizontalReach = this.height * 0.48;
                 const endX = this.baseX + this.sideOffset + Math.sin(this.angle) * horizontalReach;
                 const endY = this.baseY - Math.cos(this.angle) * this.height;
-
-                // Stem
                 ctx.beginPath();
                 ctx.moveTo(this.baseX, this.baseY);
                 ctx.quadraticCurveTo(
@@ -108,12 +220,8 @@
                 stemGrad.addColorStop(0, '#2e6b2e');
                 stemGrad.addColorStop(0.6, '#3a7e3a');
                 stemGrad.addColorStop(1, '#4a9c4a');
-                ctx.strokeStyle = stemGrad;
-                ctx.lineWidth = 5.5;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-
-                // Leaves
+                ctx.strokeStyle = stemGrad; ctx.lineWidth = 5.5; ctx.lineCap = 'round'; ctx.stroke();
+                
                 const drawLeaf = (pos, scale, rotOffset, flip) => {
                     const lx = this.baseX + (endX - this.baseX) * pos;
                     const ly = this.baseY + (endY - this.baseY) * pos;
@@ -123,49 +231,31 @@
                     if (flip) ctx.scale(-1, 1);
                     ctx.beginPath();
                     ctx.ellipse(0, 0, 28 * scale, 11 * scale, 0, 0, Math.PI * 2);
-                    ctx.fillStyle = '#255c25';
-                    ctx.globalAlpha = 0.85;
-                    ctx.fill();
+                    ctx.fillStyle = '#255c25'; ctx.globalAlpha = 0.85; ctx.fill();
                     ctx.restore();
                 };
                 drawLeaf(0.38, 1.15, 0.45, false);
                 drawLeaf(0.62, 1.0, -0.4, true);
-                drawLeaf(0.80, 0.9, 0.35, false);
 
-                // Petals
                 ctx.save();
                 ctx.translate(endX, endY);
                 ctx.rotate(this.angle * 0.6);
-
                 const drawPetal = (dx, dy, sx, sy, rot, alpha = 0.95, back = false) => {
-                    ctx.save();
-                    ctx.translate(dx, dy);
-                    ctx.rotate(rot);
-                    ctx.scale(sx, sy);
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
+                    ctx.save(); ctx.translate(dx, dy); ctx.rotate(rot); ctx.scale(sx, sy);
+                    ctx.beginPath(); ctx.moveTo(0, 0);
                     ctx.bezierCurveTo(-18, -25, -32, -55, 0, -85);
                     ctx.bezierCurveTo(32, -55, 18, -25, 0, 0);
                     ctx.closePath();
                     ctx.fillStyle = this.petalGradient;
                     ctx.globalAlpha = back ? 0.70 : alpha;
-                    ctx.shadowBlur = back ? 0 : 8;
-                    ctx.shadowColor = '#ffffff44';
-                    ctx.fill();
-                    if (!back) {
-                        ctx.globalAlpha = 0.25;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fill();
-                    }
-                    ctx.restore();
+                    ctx.shadowBlur = back ? 0 : 8; ctx.shadowColor = '#ffffff44';
+                    ctx.fill(); ctx.restore();
                 };
-
                 drawPetal(-8, 8, 1.05, 1.05, -0.12, 0.92, true);
                 drawPetal(8, 8, 1.05, 1.05, 0.12, 0.92, true);
                 drawPetal(-14, -4, 1.0, 1.0, -0.06, 0.90);
                 drawPetal(14, -4, 1.0, 1.0, 0.06, 0.90);
                 drawPetal(0, -12, 1.08, 1.12, 0, 0.98);
-
                 ctx.restore();
             }
         }
@@ -174,35 +264,23 @@
             resize();
             particles = Array.from({length: 70}, () => new Particle());
             flowers.length = 0;
-
-            // 5 tulipanes con MENOS separación (offsets reducidos ~50%)
-            flowers.push(new Tulip(-w * 0.09, 0.50, -22, 0.0));   // izquierda más externa
-            flowers.push(new Tulip(-w * 0.045, 0.54, -10, 1.1));  // izquierda media
-            flowers.push(new Tulip(0,          0.65,   0, 2.2));  // centro (el más alto)
-            flowers.push(new Tulip( w * 0.045, 0.54,  10, 3.3));  // derecha media
-            flowers.push(new Tulip( w * 0.09,  0.50,  22, 4.4));  // derecha más externa
+            // Flores un poco más pequeñas para ganar espacio vertical
+            flowers.push(new Tulip(-w * 0.10, 0.40, -20, 0.0));
+            flowers.push(new Tulip(-w * 0.05, 0.45, -10, 1.1));
+            flowers.push(new Tulip(0, 0.55, 0, 2.2));
+            flowers.push(new Tulip( w * 0.05, 0.45, 10, 3.3));
+            flowers.push(new Tulip( w * 0.10, 0.40, 20, 4.4));
         }
 
         function animate() {
             time += 16;
             ctx.clearRect(0, 0, w, h);
-
             particles.forEach(p => { p.update(); p.draw(); });
-
-            flowers.sort((a, b) => a.sideOffset - b.sideOffset);
-            flowers.forEach(f => {
-                f.update();
-                f.draw();
-            });
-
+            flowers.forEach(f => { f.update(); f.draw(); });
             requestAnimationFrame(animate);
         }
 
-        window.addEventListener('resize', () => {
-            resize();
-            init();
-        });
-
+        window.addEventListener('resize', () => { resize(); init(); });
         init();
         animate();
     </script>

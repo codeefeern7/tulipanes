@@ -7,68 +7,165 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             width: 100%;
-            height: 100%;
+            height: 100vh;
             font-family: 'Quicksand', sans-serif;
-            overflow: hidden;
-            background-color: #d63031;
+            background-color: #ffdeeb; 
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            overflow: hidden;
         }
-        h1 { color: white; font-size: 2.5rem; margin-bottom: 30px; text-align: center; padding: 0 20px; }
-        .buttons { display: flex; gap: 20px; align-items: center; justify-content: center; min-height: 150px; }
+
+        .card {
+            background-color: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            z-index: 2;
+            position: relative;
+        }
+
+        .flork-img {
+            width: 180px;
+            opacity: 0.7; 
+            margin-bottom: 20px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        h1 {
+            color: #d63031;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            min-height: 100px;
+            position: relative;
+        }
+
         button {
-            padding: 15px 30px; font-size: 1.2rem; border: none; border-radius: 10px;
-            cursor: pointer; font-weight: bold; transition: transform 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Quicksand', sans-serif;
+            transition: all 0.2s ease;
         }
-        #btn-si { background-color: #ffffff; color: #d63031; z-index: 100; }
-        #btn-no { background-color: #000000; color: #ffffff; position: relative; }
-        .sobre { margin-top: 40px; width: 150px; }
+
+        #btn-si {
+            background-color: #ff4d6d;
+            color: white;
+            z-index: 10;
+        }
+
+        #btn-no {
+            background-color: #efefef;
+            color: #444;
+            position: relative;
+        }
+
+        .oculto {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
-    <h1>¿Quieres ser mi valentín?</h1>
-    <div class="buttons">
-        <button id="btn-si">SÍ</button>
-        <button id="btn-no">NO</button>
-    </div>
-    <div class="sobre">
-        <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20,60 Q-10,30 30,20 Q50,15 70,40" fill="#a2e4e4" />
-            <path d="M180,60 Q210,30 170,20 Q150,15 130,40" fill="#a2e4e4" />
-            <rect x="30" y="40" width="140" height="90" rx="5" fill="#ff9eb5" />
-            <path d="M30,40 L100,85 L170,40" fill="none" stroke="#ffffff" stroke-width="4" />
-            <path d="M100,80 Q105,70 115,80 Q125,90 100,110 Q75,90 85,80 Q95,70 100,80" fill="#d63031" />
-        </svg>
+
+    <audio id="musicaIndex" loop>
+        <source src="musica1.mp3" type="audio/mpeg">
+        Tu navegador no soporta el audio.
+    </audio>
+
+    <div class="card">
+        <img src="flork.png" alt="Flork" class="flork-img">
+        
+        <h1>¿Quieres ser mi Valentín?</h1>
+
+        <div class="btn-container">
+            <button id="btn-si">SI</button>
+            <button id="btn-no">NO</button>
+        </div>
     </div>
 
     <script>
         const btnSi = document.getElementById('btn-si');
         const btnNo = document.getElementById('btn-no');
-        let siScale = 1;
+        const musica = document.getElementById('musicaIndex'); // Referencia al audio
+        let escalaSi = 1;
+        let intentosNo = 0;
+        let musicaIniciada = false; // Control para que no intente sonar mil veces
 
-        function moverBotonNo() {
-            siScale += 0.5;
-            btnSi.style.transform = `scale(${siScale})`;
-            const x = Math.random() * (window.innerWidth - btnNo.offsetWidth);
-            const y = Math.random() * (window.innerHeight - btnNo.offsetHeight);
-            btnNo.style.position = 'absolute';
-            btnNo.style.left = x + 'px';
-            btnNo.style.top = y + 'px';
+        const frasesNo = [
+            "¿Segura?", 
+            "Piénsalo bien...", 
+            "¿De verdad?", 
+            "Mira que te arrepentirás", 
+            "Última oportunidad", 
+            "¡No seas así!", 
+            "¡Ya no puedes decir que no!"
+        ];
+
+        // FUNCIÓN PARA REPRODUCIR MÚSICA
+        function reproducirMusica() {
+            if (!musicaIniciada) {
+                musica.volume = 0.5; // Ajuste de volumen (puedes cambiarlo aquí)
+                musica.play().catch(e => console.log("Esperando interacción..."));
+                musicaIniciada = true;
+            }
         }
 
-        btnNo.addEventListener('mouseover', moverBotonNo);
-        btnNo.addEventListener('click', moverBotonNo);
+        function moverBotonNo() {
+            reproducirMusica(); // Inicia la música al intentar tocar el botón
+            intentosNo++;
 
-        btnSi.addEventListener('click', () => {
-            // Nombre del segundo archivo
-            window.location.href = "flores.html"; 
+            if (intentosNo >= 7) {
+                btnNo.classList.add('oculto');
+                btnSi.style.transform = `scale(2.5)`;
+                btnSi.innerText = "Obvio SI";
+                return;
+            }
+
+            escalaSi += 0.4;
+            btnSi.style.transform = `scale(${escalaSi})`;
+
+            const x = Math.random() * (window.innerWidth - btnNo.offsetWidth);
+            const y = Math.random() * (window.innerHeight - btnNo.offsetHeight);
+
+            btnNo.style.position = 'fixed';
+            btnNo.style.left = x + 'px';
+            btnNo.style.top = y + 'px';
+            
+            btnNo.innerText = frasesNo[intentosNo - 1] || "NO";
+        }
+
+        // Eventos para el botón NO
+        btnNo.addEventListener('mouseover', moverBotonNo);
+        btnNo.addEventListener('click', (e) => {
+            e.preventDefault();
+            moverBotonNo();
         });
+
+        // Evento para el botón SÍ
+        btnSi.addEventListener('click', () => {
+            window.location.href = "flores.html";
+        });
+
+        // Iniciar música también si hace clic en cualquier parte de la pantalla
+        document.body.addEventListener('click', reproducirMusica, { once: true });
     </script>
 </body>
 </html>
